@@ -89,8 +89,10 @@ const getLocalTokens = (): TokenInfo[] => {
 };
 const saveLocalToken = (token: TokenInfo) => {
     const tokens = getLocalTokens();
-    tokens.unshift(token);
-    localStorage.setItem(LOCAL_TOKENS_KEY, JSON.stringify(tokens));
+    // Remove duplicates if any
+    const filtered = tokens.filter(t => t.token_code !== token.token_code);
+    filtered.unshift(token);
+    localStorage.setItem(LOCAL_TOKENS_KEY, JSON.stringify(filtered));
 };
 const updateLocalToken = (tokenCode: string, updates: Partial<TokenInfo>) => {
     let tokens = getLocalTokens();
@@ -168,7 +170,7 @@ const verifyLocalToken = async (token: string, currentFingerprint: string, confi
             allowedExamType: (found.metadata?.exam_type as any) || 'BOTH'
         };
     }
-    throw new Error("Invalid Access Code. Please verify your code.");
+    throw new Error("Offline: Invalid Access Code or not cached on this device.");
 };
 
 // --- TOKEN AUTH ---
@@ -200,6 +202,23 @@ export const loginWithToken = async (token: string, confirmBinding: boolean = fa
             }
 
             const user = res as User;
+            
+            // --- NEW: Persist token locally for offline use ---
+            const localTokenEntry: TokenInfo = {
+                id: `cached-${Date.now()}`,
+                token_code: token,
+                is_active: true, // It worked online, so it's active
+                created_at: new Date().toISOString(),
+                device_fingerprint: currentFingerprint,
+                metadata: {
+                    full_name: user.fullName,
+                    exam_type: user.allowedExamType,
+                    generated_by: 'ONLINE_CACHE'
+                }
+            };
+            saveLocalToken(localTokenEntry);
+            // ------------------------------------------------
+
             localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
             return user;
         } catch (err: any) {
