@@ -239,6 +239,35 @@ app.post('/api/auth/login', async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// New Route: Update Credentials (Admin)
+app.post('/api/auth/update-credentials', async (req, res) => {
+  const { currentUsername, currentPassword, newUsername, newPassword, role } = req.body;
+  try {
+    // 1. Verify Current
+    const { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', currentUsername)
+        .eq('role', role)
+        .single();
+
+    if (error || !user) return res.status(404).json({ error: 'Current user not found.' });
+    if (user.password !== currentPassword) return res.status(401).json({ error: 'Current password is incorrect.' });
+
+    // 2. Update to New
+    const { error: updateError } = await supabase
+        .from('users')
+        .update({ username: newUsername, password: newPassword })
+        .eq('id', user.id);
+
+    if (updateError) throw updateError;
+
+    res.json({ success: true, message: "Credentials updated successfully." });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // New Route: Register Manual Student
 app.post('/api/auth/register', async (req, res) => {
     const { fullName, regNumber } = req.body;

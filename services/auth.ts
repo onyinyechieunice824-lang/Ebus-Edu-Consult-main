@@ -387,17 +387,15 @@ export const deleteStudent = async (username: string) => {
 };
 
 export const loginUser = async (username: string, password: string, role: 'student' | 'admin'): Promise<User> => {
-    // 1. Admin Login (Offline Check with Custom Credentials)
-    if (role === 'admin') {
-         // Default admin credentials
+    // 1. Admin Login (Offline Check ONLY if FORCE_OFFLINE is true)
+    if (role === 'admin' && FORCE_OFFLINE) {
+         // Default admin credentials for pure offline mode
          let adminCreds = { username: 'admin', password: 'admin' };
          try {
-             // Try to load custom admin credentials
              const stored = localStorage.getItem(LOCAL_ADMIN_KEY);
              if (stored) adminCreds = JSON.parse(stored);
          } catch(e) {}
 
-         // Validate
          if (username.toLowerCase() === adminCreds.username.toLowerCase() && password === adminCreds.password) {
              const adminUser: User = { 
                  username: adminCreds.username, 
@@ -408,14 +406,11 @@ export const loginUser = async (username: string, password: string, role: 'stude
              localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(adminUser));
              return adminUser;
          }
-         
-         if (FORCE_OFFLINE) {
-             throw new Error("Invalid Admin credentials");
-         }
+         throw new Error("Invalid Admin credentials (Offline)");
     }
 
-    // 2. Local Student Login
-    if (FORCE_OFFLINE && role === 'student') {
+    // 2. Local Student Login (Offline)
+    if (role === 'student' && FORCE_OFFLINE) {
         const users = getLocalStudents();
         const user = users.find(u => u.username === username);
         if (user) {
@@ -425,6 +420,7 @@ export const loginUser = async (username: string, password: string, role: 'stude
         throw new Error("Student not found in local database.");
     }
 
+    // 3. Online Login (Database Check)
     try {
         const user = await apiRequest('/api/auth/login', 'POST', { username, password, role });
         localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
@@ -435,21 +431,35 @@ export const loginUser = async (username: string, password: string, role: 'stude
 };
 
 export const updateAdminCredentials = async (currentUsername: string, currentPass: string, newUsername: string, newPass: string) => {
-    // 1. Get current stored creds or default
-    let adminCreds = { username: 'admin', password: 'admin' };
-    try {
-        const stored = localStorage.getItem(LOCAL_ADMIN_KEY);
-        if (stored) adminCreds = JSON.parse(stored);
-    } catch(e) {}
+    // 1. Offline Mode Update
+    if (FORCE_OFFLINE) {
+        let adminCreds = { username: 'admin', password: 'admin' };
+        try {
+            const stored = localStorage.getItem(LOCAL_ADMIN_KEY);
+            if (stored) adminCreds = JSON.parse(stored);
+        } catch(e) {}
 
-    // 2. Verify current credentials
-    if (currentUsername.toLowerCase() !== adminCreds.username.toLowerCase() || currentPass !== adminCreds.password) {
-        throw new Error("Current admin credentials are incorrect.");
+        if (currentUsername.toLowerCase() !== adminCreds.username.toLowerCase() || currentPass !== adminCreds.password) {
+            throw new Error("Current admin credentials are incorrect.");
+        }
+
+        const newCreds = { username: newUsername, password: newPass };
+        localStorage.setItem(LOCAL_ADMIN_KEY, JSON.stringify(newCreds));
+        return;
     }
 
-    // 3. Save new credentials
-    const newCreds = { username: newUsername, password: newPass };
-    localStorage.setItem(LOCAL_ADMIN_KEY, JSON.stringify(newCreds));
+    // 2. Online Mode Update (Backend Call)
+    try {
+        await apiRequest('/api/auth/update-credentials', 'POST', {
+            currentUsername,
+            currentPassword: currentPass,
+            newUsername,
+            newPassword: newPass,
+            role: 'admin'
+        });
+    } catch (err: any) {
+        throw err;
+    }
 };
 
 export const changePassword = async (username: string, oldPass: string, newPass: string, role: 'student' | 'admin') => {
@@ -457,6 +467,7 @@ export const changePassword = async (username: string, oldPass: string, newPass:
         console.log("Password change simulated locally");
         return;
     }
+    // Implement student password change if needed
 };
 
 export const resetAdminPassword = (newPass: string) => {
