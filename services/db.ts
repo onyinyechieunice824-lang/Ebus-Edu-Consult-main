@@ -168,7 +168,7 @@ export const resetDatabase = async (clearAll: boolean = false) => {
 };
 
 export const getBankStats = () => {
-    const SUBJECTS: Subject[] = ['English', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Economics', 'Government', 'Literature', 'CRS', 'Agricultural Science', 'Geography', 'Commerce', 'Financial Accounting', 'Civic Education', 'Further Mathematics', 'History'];
+    const SUBJECTS: Subject[] = ['English', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Economics', 'Government', 'Literature', 'CRS', 'Agricultural Science', 'Geography', 'Commerce', 'Financial Accounting', 'Civic Education', 'Further Mathematics', 'History', 'Computer Studies'];
     const stats: Record<string, { JAMB: number, WAEC: number }> = {};
   
     SUBJECTS.forEach(sub => {

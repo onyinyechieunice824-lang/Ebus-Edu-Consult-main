@@ -1,21 +1,22 @@
 
-export type Subject = 
-  | 'English' 
-  | 'Mathematics' 
-  | 'Physics' 
-  | 'Chemistry' 
-  | 'Biology' 
+export type Subject =
+  | 'English'
+  | 'Mathematics'
+  | 'Physics'
+  | 'Chemistry'
+  | 'Biology'
   | 'Agricultural Science'
-  | 'Economics' 
-  | 'Government' 
-  | 'Literature' 
+  | 'Economics'
+  | 'Government'
+  | 'Literature'
   | 'CRS'
-  | 'Geography' 
+  | 'Geography'
   | 'Commerce'
   | 'Financial Accounting'
   | 'Civic Education'
   | 'Further Mathematics'
-  | 'History';
+  | 'History'
+  | 'Computer Studies';
 
 export type ExamType = 'JAMB' | 'WAEC';
 

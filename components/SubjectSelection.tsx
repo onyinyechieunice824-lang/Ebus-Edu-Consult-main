@@ -24,7 +24,7 @@ interface Props {
 // Categorized Subjects for better UI
 const WAEC_SUBJECTS = {
     'General (Core)': ['English', 'Mathematics', 'Civic Education'] as Subject[],
-    'Science': ['Physics', 'Chemistry', 'Biology', 'Further Mathematics', 'Agricultural Science', 'Geography'] as Subject[],
+    'Science': ['Physics', 'Chemistry', 'Biology', 'Further Mathematics', 'Agricultural Science', 'Geography', 'Computer Studies'] as Subject[],
     'Commercial': ['Economics', 'Commerce', 'Financial Accounting'] as Subject[],
     'Arts': ['Government', 'Literature', 'CRS', 'History'] as Subject[]
 };
@@ -33,7 +33,7 @@ const WAEC_SUBJECTS = {
 const JAMB_SUBJECTS: Subject[] = [
   'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Agricultural Science',
   'Economics', 'Government', 'Literature', 'CRS', 'Geography', 'Commerce',
-  'Civic Education', 'History', 'Financial Accounting', 'Further Mathematics'
+  'Civic Education', 'History', 'Financial Accounting', 'Further Mathematics', 'Computer Studies'
 ];
 
 export const SubjectSelection: React.FC<Props> = ({ onStartExam, hasSavedSession, onResume, onLogout, onReview, user, examType, setExamType, theme, toggleTheme }) => {
